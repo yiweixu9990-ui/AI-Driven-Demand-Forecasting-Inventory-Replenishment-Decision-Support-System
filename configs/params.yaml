@@ -1,9 +1,3 @@
-
----
-
-## 2) `configs/params.yaml`
-
-```yaml
 project:
   random_seed: 42
 
@@ -16,23 +10,23 @@ data_generation:
   category_mix: [0.5, 0.3, 0.2]
 
   # Demand patterns
-  weekly_seasonality_strength: 0.25     # affects day-of-week pattern
-  yearly_seasonality_strength: 0.20     # affects annual sinusoid
-  noise_cv: 0.20                        # coefficient of variation of noise
+  weekly_seasonality_strength: 0.25
+  yearly_seasonality_strength: 0.20
+  noise_cv: 0.20
 
   # Price / promo
   base_price_range: [8.0, 30.0]
-  price_volatility: 0.06                # daily lognormal volatility
-  promo_probability: 0.10               # probability of promo per day
-  promo_lift_range: [0.10, 0.60]        # demand lift on promo days
-  price_elasticity_range: [-2.0, -0.3]  # negative elasticity
+  price_volatility: 0.06
+  promo_probability: 0.10
+  promo_lift_range: [0.10, 0.60]
+  price_elasticity_range: [-2.0, -0.3]
 
-  # Inventory + replenishment behavior (simulation)
+  # Inventory + replenishment behavior
   initial_on_hand_range: [50, 200]
   lead_time_days_range: [2, 10]
-  review_period_days: 7                # orders are placed every N days
-  target_days_of_cover_range: [10, 25] # heuristic order-up-to target
-  stockout_penalty_enabled: true       # realized sales capped by on-hand
+  review_period_days: 7
+  target_days_of_cover_range: [10, 25]
+  stockout_penalty_enabled: true
 
 outputs:
   sales_file: "sales.csv"
