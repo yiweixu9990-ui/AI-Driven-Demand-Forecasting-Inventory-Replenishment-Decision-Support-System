@@ -95,6 +95,8 @@ The dashboard provides:
 ### Dashboard Overview
 ![Dashboard Overview](assets/dashboard_overview.png)
 
+### Demand Forecast Example 
+![Demand Forecast](assets/forecast_chart.png)
 
 ---
 
