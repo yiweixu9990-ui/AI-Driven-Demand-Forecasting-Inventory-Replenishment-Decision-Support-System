@@ -1,6 +1,6 @@
+streamlit
 pandas
 numpy
-pyyaml
-scikit-learn
 matplotlib
-streamlit
+scikit-learn
+pyyaml
