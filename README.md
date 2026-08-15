@@ -153,6 +153,7 @@ Example dashboard KPIs:
 ### AI Agent
 
 - OpenAI Agents SDK
+- OpenRouter-compatible model provider (Claude by default)
 - Four deterministic, read-only function tools
 - Natural-language forecast, inventory and replenishment explanations
 
@@ -194,7 +195,22 @@ pip install -r requirements.txt
 Copy-Item .streamlit\secrets.toml.example .streamlit\secrets.toml
 ```
 
-Edit `.streamlit/secrets.toml` and add your API key, then run:
+Edit `.streamlit/secrets.toml` and add your OpenRouter key:
+
+```toml
+OPENROUTER_API_KEY = "your-openrouter-api-key"
+OPENROUTER_MODEL = "~anthropic/claude-sonnet-latest"
+```
+
+The OpenRouter provider takes precedence when both provider keys exist. The
+OpenAI configuration remains available as an optional fallback:
+
+```toml
+OPENAI_API_KEY = "your-openai-api-key"
+OPENAI_MODEL = "gpt-5.6-luna"
+```
+
+Then run:
 
 ```powershell
 streamlit run dashboard.py

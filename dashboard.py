@@ -54,19 +54,31 @@ reorder_df = pd.read_csv(reorder_path)
 forecast_df["date"] = pd.to_datetime(forecast_df["date"])
 
 
-def configure_openai() -> bool:
-    """Load optional Streamlit secrets without exposing them in the UI."""
+def configure_agent_provider() -> str | None:
+    """Load provider secrets without exposing them in the UI."""
     try:
         secrets = st.secrets.to_dict()
     except Exception:
         secrets = {}
 
-    if not os.getenv("OPENAI_API_KEY") and secrets.get("OPENAI_API_KEY"):
-        os.environ["OPENAI_API_KEY"] = str(secrets["OPENAI_API_KEY"])
-    if not os.getenv("OPENAI_MODEL") and secrets.get("OPENAI_MODEL"):
-        os.environ["OPENAI_MODEL"] = str(secrets["OPENAI_MODEL"])
+    supported_keys = (
+        "OPENROUTER_API_KEY",
+        "OPENROUTER_MODEL",
+        "OPENROUTER_BASE_URL",
+        "OPENROUTER_SITE_URL",
+        "OPENROUTER_APP_NAME",
+        "OPENAI_API_KEY",
+        "OPENAI_MODEL",
+    )
+    for key in supported_keys:
+        if not os.getenv(key) and secrets.get(key):
+            os.environ[key] = str(secrets[key])
 
-    return bool(os.getenv("OPENAI_API_KEY"))
+    if os.getenv("OPENROUTER_API_KEY"):
+        return "OpenRouter"
+    if os.getenv("OPENAI_API_KEY"):
+        return "OpenAI"
+    return None
 
 # =========================
 # Sidebar
@@ -184,13 +196,22 @@ st.caption(
     "scenarios. The agent only reads local project outputs and cannot place orders."
 )
 
-if not configure_openai():
+agent_provider = configure_agent_provider()
+if not agent_provider:
     st.info(
-        "Configure OPENAI_API_KEY in the environment or Streamlit secrets to enable "
-        "the agent. See .streamlit/secrets.toml.example."
+        "Configure OPENROUTER_API_KEY (recommended) or OPENAI_API_KEY in the "
+        "environment or Streamlit secrets to enable the agent. See "
+        ".streamlit/secrets.toml.example."
     )
 else:
     from src.agent.supply_chain_agent import run_agent
+
+    configured_model = (
+        os.getenv("OPENROUTER_MODEL", "~anthropic/claude-sonnet-latest")
+        if agent_provider == "OpenRouter"
+        else os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+    )
+    st.caption(f"Model provider: {agent_provider} · Model: {configured_model}")
 
     if "agent_messages" not in st.session_state:
         st.session_state.agent_messages = []

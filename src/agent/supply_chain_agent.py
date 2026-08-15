@@ -5,7 +5,13 @@ from __future__ import annotations
 import os
 from collections.abc import Sequence
 
-from agents import Agent, Runner
+from agents import (
+    Agent,
+    AsyncOpenAI,
+    OpenAIChatCompletionsModel,
+    Runner,
+    set_tracing_disabled,
+)
 
 from .tools import SUPPLY_CHAIN_TOOLS
 
@@ -25,11 +31,44 @@ Rules:
 """.strip()
 
 
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_OPENROUTER_MODEL = "~anthropic/claude-sonnet-latest"
+
+
+def _configured_model() -> str | OpenAIChatCompletionsModel:
+    """Select OpenRouter when configured, otherwise use the OpenAI provider."""
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+    if not openrouter_key:
+        return os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+
+    # OpenAI tracing uses a separate OpenAI endpoint. Disable it when the model
+    # request is authenticated only through OpenRouter.
+    set_tracing_disabled(True)
+    client = AsyncOpenAI(
+        api_key=openrouter_key,
+        base_url=os.getenv("OPENROUTER_BASE_URL", OPENROUTER_BASE_URL),
+        default_headers={
+            "HTTP-Referer": os.getenv(
+                "OPENROUTER_SITE_URL",
+                "https://lae2lnyssajmtjfhsyy9il.streamlit.app/",
+            ),
+            "X-OpenRouter-Title": os.getenv(
+                "OPENROUTER_APP_NAME",
+                "AI Supply Chain Decision Support System",
+            ),
+        },
+    )
+    return OpenAIChatCompletionsModel(
+        model=os.getenv("OPENROUTER_MODEL", DEFAULT_OPENROUTER_MODEL),
+        openai_client=client,
+    )
+
+
 def build_agent() -> Agent:
     """Build the minimal single agent with deterministic local tools."""
     return Agent(
         name="Supply Chain Replenishment Assistant",
-        model=os.getenv("OPENAI_MODEL", "gpt-5.6-luna"),
+        model=_configured_model(),
         instructions=AGENT_INSTRUCTIONS,
         tools=SUPPLY_CHAIN_TOOLS,
     )
