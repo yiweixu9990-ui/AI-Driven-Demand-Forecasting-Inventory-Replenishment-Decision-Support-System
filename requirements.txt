@@ -4,3 +4,4 @@ numpy
 matplotlib
 scikit-learn
 pyyaml
+openai-agents>=0.20.0,<0.21.0
