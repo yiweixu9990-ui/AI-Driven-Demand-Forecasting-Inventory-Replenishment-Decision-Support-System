@@ -53,6 +53,21 @@ reorder_df = pd.read_csv(reorder_path)
 
 forecast_df["date"] = pd.to_datetime(forecast_df["date"])
 
+
+def configure_openai() -> bool:
+    """Load optional Streamlit secrets without exposing them in the UI."""
+    try:
+        secrets = st.secrets.to_dict()
+    except Exception:
+        secrets = {}
+
+    if not os.getenv("OPENAI_API_KEY") and secrets.get("OPENAI_API_KEY"):
+        os.environ["OPENAI_API_KEY"] = str(secrets["OPENAI_API_KEY"])
+    if not os.getenv("OPENAI_MODEL") and secrets.get("OPENAI_MODEL"):
+        os.environ["OPENAI_MODEL"] = str(secrets["OPENAI_MODEL"])
+
+    return bool(os.getenv("OPENAI_API_KEY"))
+
 # =========================
 # Sidebar
 # =========================
@@ -158,6 +173,55 @@ if not sku_reorder.empty:
         st.success(f"{selected_sku} does not currently require replenishment.")
 else:
     st.warning("No inventory policy data found for the selected SKU.")
+
+# =========================
+# AI supply-chain agent
+# =========================
+st.divider()
+st.subheader("AI Supply Chain Agent")
+st.caption(
+    "Ask about forecasts, inventory, replenishment recommendations or what-if "
+    "scenarios. The agent only reads local project outputs and cannot place orders."
+)
+
+if not configure_openai():
+    st.info(
+        "Configure OPENAI_API_KEY in the environment or Streamlit secrets to enable "
+        "the agent. See .streamlit/secrets.toml.example."
+    )
+else:
+    from src.agent.supply_chain_agent import run_agent
+
+    if "agent_messages" not in st.session_state:
+        st.session_state.agent_messages = []
+
+    for message in st.session_state.agent_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    prompt = st.chat_input(
+        "Example: Why does SKU_0011 need replenishment?",
+        key="supply_chain_agent_input",
+    )
+
+    if prompt:
+        prior_history = list(st.session_state.agent_messages)
+        st.session_state.agent_messages.append(
+            {"role": "user", "content": prompt}
+        )
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        try:
+            with st.chat_message("assistant"):
+                with st.spinner("Analyzing supply-chain data..."):
+                    answer = run_agent(prompt, prior_history)
+                st.markdown(answer)
+            st.session_state.agent_messages.append(
+                {"role": "assistant", "content": answer}
+            )
+        except Exception as exc:
+            st.error(f"The agent could not complete the request: {exc}")
 
 # =========================
 # Top charts

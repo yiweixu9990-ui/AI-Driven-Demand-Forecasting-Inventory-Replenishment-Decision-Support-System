@@ -45,8 +45,13 @@ The pipeline includes:
 - Inventory policy calculation  
 - Replenishment recommendation  
 - Interactive dashboard visualization  
+- A single AI agent with read-only supply-chain tools
 
 The goal is not only to **predict demand**, but also to demonstrate how predictions can be converted into **actionable operational decisions**.
+
+> **Data scope:** The checked-in forecast file contains historical test-period
+> backtest predictions. The agent labels these results as backtests and does not
+> present them as a live future forecast.
 
 
 ---
@@ -145,6 +150,12 @@ Example dashboard KPIs:
 - matplotlib
 - Streamlit
 
+### AI Agent
+
+- OpenAI Agents SDK
+- Four deterministic, read-only function tools
+- Natural-language forecast, inventory and replenishment explanations
+
 ### Development
 
 - Python
@@ -154,6 +165,53 @@ Example dashboard KPIs:
 ### Deployment
 
 - Streamlit Cloud
+
+---
+
+## AI Supply Chain Agent
+
+The dashboard includes a minimal single agent based on the official OpenAI
+Agents SDK tool-calling pattern. The language model selects tools and explains
+their results, while deterministic Python functions perform all calculations.
+
+Available tools:
+
+- `get_demand_forecast_tool`
+- `get_inventory_status_tool`
+- `calculate_replenishment_tool`
+- `run_replenishment_scenario_tool`
+
+The first version is read-only. It cannot create, approve or submit purchase
+orders, and it explicitly reports missing inputs such as open orders, MOQ,
+case-pack and capacity constraints.
+
+### Local setup
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .streamlit\secrets.toml.example .streamlit\secrets.toml
+```
+
+Edit `.streamlit/secrets.toml` and add your API key, then run:
+
+```powershell
+streamlit run dashboard.py
+```
+
+Example questions:
+
+- `Why does SKU_0011 need replenishment?`
+- `Summarize the latest 14 available forecast rows for SKU_0003.`
+- `Recalculate SKU_0008 at a 97% service level.`
+- `What happens to SKU_0011 if lead time increases to 14 days and demand rises 20%?`
+
+Run deterministic tests without making any model calls:
+
+```powershell
+python -m unittest discover -s tests -v
+```
 
 ---
 
