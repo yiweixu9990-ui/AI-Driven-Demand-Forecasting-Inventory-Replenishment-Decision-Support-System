@@ -1,27 +1,28 @@
 # AI Supply Chain Planning Agent
 
-An end-to-end portfolio project that connects demand-forecast backtesting,
-inventory replenishment logic and an LLM tool-calling agent in one Streamlit
-decision-support application.
+A Streamlit application for SKU-level demand analysis, inventory replenishment
+planning and conversational what-if analysis. It combines a Random Forest
+demand model, deterministic Python inventory calculations and a tool-calling AI
+assistant in one decision-support workflow.
 
 [Open the live analytics dashboard](https://lae2lnyssajmtjfhsyy9il.streamlit.app/)
 
-> **Deployment status:** the analytics dashboard is public. The Agent is
-> implemented, tested locally and available in the open pull request, but is not
-> yet present on the public dashboard. Public Agent deployment requires merging
-> the PR and configuring `OPENROUTER_API_KEY` in Streamlit Cloud Secrets.
+> **Data note:** the application uses a reproducible synthetic dataset. Forecast
+> values shown in the repository are historical test-period predictions rather
+> than live future forecasts.
 
-## What this project demonstrates
+## Overview
 
-- A reproducible synthetic supply-chain dataset covering 30 SKUs and 365 days.
-- SKU-level demand modelling with price, promotion, calendar, lag and rolling
-  demand features.
-- Random Forest backtest evaluation using MAE and RMSE.
-- Deterministic safety-stock, reorder-point and replenishment calculations.
-- A read-only AI Agent that selects supply-chain tools and explains their
-  structured outputs in business language.
-- An interactive Streamlit interface for charts, inventory alerts, downloads
-  and natural-language what-if analysis.
+The application supports five connected tasks:
+
+1. generate a configurable supply-chain dataset covering 30 SKUs and 365 days;
+2. build SKU-level demand features from price, promotion, calendar and demand
+   history;
+3. evaluate a Random Forest model on a held-out historical period;
+4. calculate safety stock, reorder points, target stock and replenishment
+   quantities with deterministic Python services; and
+5. query forecasts, inventory status and replenishment scenarios through a
+   read-only AI assistant or the Streamlit dashboard.
 
 ## Business problem
 
@@ -32,11 +33,11 @@ Supply-chain planners repeatedly need to connect three questions:
 3. How would the recommendation change if demand, lead time or service level
    changed?
 
-This project turns those questions into a small decision-support workflow. The
-machine-learning layer produces a historical test-period backtest, deterministic
-Python services calculate inventory recommendations, and the Agent decides which
-service to call before explaining the result. The language model does not invent
-or calculate order quantities itself.
+The workflow separates prediction, inventory calculations and natural-language
+interaction. The machine-learning layer produces a historical test-period
+backtest, Python services calculate inventory recommendations, and the Agent
+selects the appropriate service before explaining its result. The language model
+does not calculate order quantities itself.
 
 ## System architecture
 
@@ -83,7 +84,7 @@ The Agent follows three explicit boundaries:
 - current forecast outputs must be labelled as historical backtest data;
 - the Agent cannot create, approve or submit a purchase order.
 
-## Reproducible result snapshot
+## Current results
 
 The checked-in outputs currently contain:
 
@@ -97,8 +98,9 @@ The checked-in outputs currently contain:
 | SKUs flagged for replenishment | 13 |
 | Total recommended quantity | 7,323 units |
 
-These are simulated-data results for demonstrating the workflow; they are not
-production KPIs or claims about a real company.
+All figures come from generated project data. They describe the checked-in test
+run and should not be interpreted as production KPIs or results from a real
+company.
 
 ## Dashboard
 
@@ -200,7 +202,8 @@ Current test coverage checks:
 
 ## Scope and limitations
 
-This repository is a portfolio MVP, not a production planning system.
+The current implementation is intentionally scoped to analysis and decision
+support:
 
 - Forecast results are historical test-period predictions, not a live recursive
   future forecast.
@@ -211,9 +214,9 @@ This repository is a portfolio MVP, not a production planning system.
 - The Agent is intentionally read-only and keeps purchase-order approval outside
   the automated workflow.
 
-The next production-oriented improvements would be rolling-origin validation,
-forecast-error-based safety stock, inventory-position logic, constraint
-validation, monitoring and an approval-gated purchase-order draft workflow.
+Planned extensions include rolling-origin validation, forecast-error-based
+safety stock, inventory-position logic, constraint validation, monitoring and an
+approval-gated purchase-order draft workflow.
 
 ## Technology stack
 
@@ -222,9 +225,3 @@ validation, monitoring and an approval-gated purchase-order draft workflow.
 - **Agent:** OpenAI Agents SDK, OpenRouter-compatible provider, Claude
 - **Application:** Streamlit, Matplotlib
 - **Quality:** unittest, Git, GitHub
-
----
-
-Built as an educational portfolio project demonstrating how forecasting,
-inventory logic and tool-calling AI can be combined without allowing the LLM to
-control operational transactions.
